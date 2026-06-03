@@ -262,8 +262,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ## 👤 Author
 
 **Your Name / Portfolio**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: [your.email@example.com](mailto:your.email@example.com)
+- GitHub: [@TechVibe-byte](https://github.com/TechVibe-byte)
 
 ---
 
