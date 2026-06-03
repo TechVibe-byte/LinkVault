@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>LinkVault — Personal Knowledge Manager & Learning Tracker</title>
+  <!-- SEO & PWA Meta Tags -->
+  <meta name="description" content="A comprehensive, offline-capable Personal Knowledge Manager and Learning Tracker to bookmark and categorize articles, documentation, and videos.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <meta name="theme-color" content="#4f46e5">
+
+  <!-- iOS / Apple Specific PWA Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LinkVault">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+
+  <!-- Zero-Flicker Synchronous Theme Loader -->
+  <script>
+    (function() {
+      const saved = localStorage.getItem('pkm_theme') || 'system';
+      const isDark = saved === 'dark' || (saved === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.toggle('dark', isDark);
+
+      const accent = localStorage.getItem('pkm_accent') || 'indigo';
+      document.documentElement.setAttribute('data-accent', accent);
+    })();
+  </script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              850: '#1e293b',
+              955: '#0b0f19',
+            },
+            brand: {
+              50: 'var(--brand-50)',
+              100: 'var(--brand-100)',
+              200: 'var(--brand-200)',
+              500: 'var(--brand-500)',
+              600: 'var(--brand-600)',
+              650: 'var(--brand-650)',
+              700: 'var(--brand-700)',
+              800: 'var(--brand-800)',
+              glow: 'var(--brand-glow)',
+            }
+          },
+          fontSize: {
+            '2xs': '0.65rem',
+            '3xs': '0.55rem',
+          },
+          screens: {
+            'xs': '480px',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="index.css">
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-955 text-slate-800 dark:text-slate-100 flex flex-col md:flex-row antialiased select-none md:select-text">
+
+  <!-- Mobile Sticky Top Header -->
+  <header id="mobile-header" class="flex md:hidden items-center justify-between px-4 py-3 bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-45 backdrop-blur-md transition-colors">
+    <div class="flex items-center gap-2.5">
+      <button id="hamburger-menu-btn" class="p-2 -ml-2 rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-90 transition-transform" aria-label="Open Navigation Menu">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-600/20">
+          <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+        </div>
+        <span class="text-sm font-extrabold bg-gradient-to-r from-brand-600 to-violet-500 dark:from-brand-400 dark:to-violet-400 bg-clip-text text-transparent">LinkVault</span>
+      </div>
+    </div>
+    
+    <!-- Theme Switcher -->
+    <button id="theme-toggle-mobile" class="theme-toggle-btn p-2 rounded-xl text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-slate-850 active:scale-90 transition-transform" aria-label="Toggle Theme">
+      <i data-lucide="sun" class="sun-icon w-5 h-5 hidden dark:block"></i>
+      <i data-lucide="moon" class="moon-icon w-5 h-5 block dark:hidden"></i>
+    </button>
+  </header>
+
+  <!-- Desktop Navigation Sidebar -->
+  <aside class="glass-sidebar w-full md:w-64 shrink-0 border-b md:border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col md:h-full z-30 hidden md:flex">
+    <div class="p-6 flex items-center justify-between border-b border-slate-200/50 dark:border-slate-800/50">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-600/30">
+          <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-md font-extrabold tracking-tight bg-gradient-to-r from-brand-600 to-violet-500 dark:from-brand-400 dark:to-violet-400 bg-clip-text text-transparent">LinkVault</h1>
+          <span class="text-3xs text-slate-400 font-semibold tracking-widest uppercase">Knowledge Hub</span>
+        </div>
+      </div>
+      
+      <!-- Theme Selection Toggle Button -->
+      <button id="theme-toggle-desktop" class="theme-toggle-btn p-2 rounded-xl text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-90 transition-transform" aria-label="Toggle Theme">
+        <i data-lucide="sun" class="sun-icon w-5 h-5 hidden dark:block"></i>
+        <i data-lucide="moon" class="moon-icon w-5 h-5 block dark:hidden"></i>
+      </button>
+    </div>
+
+    <!-- Nav Links Navigation -->
+    <nav class="flex-1 p-4 flex flex-col gap-1">
+      <a href="#" data-view="dashboard" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200">
+        <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" data-view="links" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200">
+        <i data-lucide="library" class="w-4 h-4 shrink-0"></i>
+        <span>Library</span>
+      </a>
+      <a href="#" data-view="learning" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200">
+        <i data-lucide="book-open" class="w-4 h-4 shrink-0"></i>
+        <span>Learning Tracker</span>
+      </a>
+    </nav>
+
+    <!-- Sidebar Footer Actions -->
+    <div class="p-4 border-t border-slate-200/50 dark:border-slate-800/50 flex flex-col gap-2 bg-slate-100/30 dark:bg-slate-900/10">
+      <!-- Continue Learning Button -->
+      <button id="continue-learning-btn" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-600/10 active:scale-95 transition-all">
+        <i data-lucide="play-circle" class="w-4 h-4 shrink-0"></i>
+        <span>Continue Learning</span>
+      </button>
+
+      <!-- Import/Export & Help -->
+      <div class="flex items-center gap-1">
+        <button id="backup-export-btn" title="Backup Data (Export JSON)" class="flex-1 p-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors flex items-center justify-center">
+          <i data-lucide="download" class="w-4 h-4"></i>
+        </button>
+        <button id="backup-import-btn" title="Restore Data (Import JSON)" class="flex-1 p-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors flex items-center justify-center">
+          <i data-lucide="upload" class="w-4 h-4"></i>
+        </button>
+        <input type="file" id="backup-import-file" class="hidden" accept=".json" />
+        <button onclick="App.openShortcutsModal()" title="Keyboard Shortcuts" class="flex-1 p-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/80 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors flex items-center justify-center">
+          <i data-lucide="keyboard" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Accent Theme Selector -->
+      <div class="mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-800/50 flex flex-col gap-1.5">
+        <span class="text-3xs font-bold text-slate-400 uppercase tracking-widest block px-1">Accent Theme</span>
+        <div class="flex items-center justify-between px-1" id="desktop-accent-picker">
+          <button data-accent-val="indigo" title="Indigo Accent" class="w-5 h-5 rounded-full bg-indigo-650 border-2 border-transparent hover:scale-110 active:scale-95 transition-all focus:outline-none"></button>
+          <button data-accent-val="violet" title="Violet Accent" class="w-5 h-5 rounded-full bg-purple-600 border-2 border-transparent hover:scale-110 active:scale-95 transition-all focus:outline-none"></button>
+          <button data-accent-val="emerald" title="Emerald Accent" class="w-5 h-5 rounded-full bg-emerald-600 border-2 border-transparent hover:scale-110 active:scale-95 transition-all focus:outline-none"></button>
+          <button data-accent-val="rose" title="Rose Accent" class="w-5 h-5 rounded-full bg-rose-600 border-2 border-transparent hover:scale-110 active:scale-95 transition-all focus:outline-none"></button>
+          <button data-accent-val="amber" title="Amber Accent" class="w-5 h-5 rounded-full bg-amber-500 border-2 border-transparent hover:scale-110 active:scale-95 transition-all focus:outline-none"></button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile Slide-In Navigation Drawer Panel -->
+  <div id="mobile-drawer-overlay" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+    <div id="mobile-drawer-panel" class="absolute top-0 left-0 h-full w-80 max-w-[85vw] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col justify-between transform -translate-x-full transition-transform duration-300 ease-out z-50">
+      
+      <!-- Drawer Header -->
+      <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white">
+            <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+          </div>
+          <span class="text-md font-bold bg-gradient-to-r from-brand-600 to-violet-500 dark:from-brand-400 dark:to-violet-400 bg-clip-text text-transparent">LinkVault Menu</span>
+        </div>
+        <button id="drawer-close-btn" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-90 transition-transform">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Drawer Content Links -->
+      <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-1.5">
+        <span class="px-3 py-1.5 text-3xs font-bold text-slate-400 uppercase tracking-widest">Navigation</span>
+        <a href="#" data-view="dashboard" class="drawer-nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
+          <i data-lucide="layout-dashboard" class="w-4.5 h-4.5"></i>
+          <span>Dashboard Overview</span>
+        </a>
+        <a href="#" data-view="links" class="drawer-nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
+          <i data-lucide="library" class="w-4.5 h-4.5"></i>
+          <span>Library Catalog</span>
+        </a>
+        <a href="#" data-view="learning" class="drawer-nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
+          <i data-lucide="book-open" class="w-4.5 h-4.5"></i>
+          <span>Active Learning Goals</span>
+        </a>
+
+        <div class="h-px bg-slate-100 dark:bg-slate-800 my-3"></div>
+
+        <span class="px-3 py-1.5 text-3xs font-bold text-slate-400 uppercase tracking-widest">System Tools</span>
+        <button id="drawer-export-btn" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-left transition-all">
+          <i data-lucide="download" class="w-4.5 h-4.5"></i>
+          <span>Backup Library (JSON)</span>
+        </button>
+        <button id="drawer-import-btn" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-left transition-all">
+          <i data-lucide="upload" class="w-4.5 h-4.5"></i>
+          <span>Restore Backup (JSON)</span>
+        </button>
+        <button onclick="App.openShortcutsModal()" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-left transition-all">
+          <i data-lucide="keyboard" class="w-4.5 h-4.5"></i>
+          <span>Keyboard Shortcuts</span>
+        </button>
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/30 flex flex-col gap-3">
+        <!-- Theme Select Selector in Drawer -->
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-500">
+          <span>Theme Setting</span>
+          <div class="relative">
+            <select id="drawer-theme-selector" class="appearance-none bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg text-slate-700 dark:text-slate-300 focus:outline-none pr-8 cursor-pointer">
+              <option value="light">☀️ Light</option>
+              <option value="dark">🌙 Dark</option>
+              <option value="system">💻 System</option>
+            </select>
+            <div class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-slate-400">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accent Setting Selector in Drawer -->
+        <div class="flex flex-col gap-1.5 mt-1">
+          <span class="text-xs font-semibold text-slate-500">Accent Theme</span>
+          <div class="flex items-center justify-between" id="drawer-accent-picker">
+            <button data-accent-val="indigo" title="Indigo Accent" class="w-6 h-6 rounded-full bg-indigo-650 border-2 border-transparent hover:scale-110 active:scale-95 transition-all focus:outline-none"></button>
+            <button data-accent-val="violet" title="Violet Accent" class="w-6 h-6 rounded-full bg-purple-600 border-2 border-transparent hover:scale-110 active:scale-95 transition-all focus:outline-none"></button>
+            <button data-accent-val="emerald" title="Emerald Accent" class="w-6 h-6 rounded-full bg-emerald-600 border-2 border-transparent hover:scale-110 active:scale-95 transition-all focus:outline-none"></button>
+            <button data-accent-val="rose" title="Rose Accent" class="w-6 h-6 rounded-full bg-rose-600 border-2 border-transparent hover:scale-110 active:scale-95 transition-all focus:outline-none"></button>
+            <button data-accent-val="amber" title="Amber Accent" class="w-6 h-6 rounded-full bg-amber-500 border-2 border-transparent hover:scale-110 active:scale-95 transition-all focus:outline-none"></button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Sticky Bottom Navigation Bar -->
+  <div id="mobile-bottom-nav" class="flex md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-3 py-2.5 justify-around items-center z-40 transition-colors">
+    <a href="#" data-view="dashboard" class="mobile-nav-link flex flex-col items-center gap-1 text-slate-400 py-1 transition-colors">
+      <i data-lucide="layout-dashboard" class="w-5.5 h-5.5"></i>
+      <span class="text-3xs font-semibold tracking-wider">Dashboard</span>
+    </a>
+    <a href="#" data-view="links" class="mobile-nav-link flex flex-col items-center gap-1 text-slate-400 py-1 transition-colors">
+      <i data-lucide="library" class="w-5.5 h-5.5"></i>
+      <span class="text-3xs font-semibold tracking-wider">Library</span>
+    </a>
+    <!-- Central Thumb FAB -->
+    <button class="quick-add-trigger -translate-y-5 p-4 bg-brand-600 hover:bg-brand-700 text-white rounded-full shadow-lg shadow-brand-600/30 active:scale-90 transition-transform border-4 border-slate-50 dark:border-slate-950" aria-label="Quick Add Bookmark">
+      <i data-lucide="plus" class="w-6 h-6"></i>
+    </button>
+    <a href="#" data-view="learning" class="mobile-nav-link flex flex-col items-center gap-1 text-slate-400 py-1 transition-colors">
+      <i data-lucide="book-open" class="w-5.5 h-5.5"></i>
+      <span class="text-3xs font-semibold tracking-wider">Learning</span>
+    </a>
+    <button id="mobile-more-btn" class="flex flex-col items-center gap-1 text-slate-400 py-1 transition-colors">
+      <i data-lucide="more-horizontal" class="w-5.5 h-5.5"></i>
+      <span class="text-3xs font-semibold tracking-wider">More</span>
+    </button>
+  </div>
+
+  <!-- Main View Content Area -->
+  <main class="flex-1 overflow-y-auto h-full px-4 py-6 md:p-10 pb-24 md:pb-10 relative">
+
+    <!-- ==================== DASHBOARD VIEW ==================== -->
+    <section id="dashboard-view" class="view-section hidden flex flex-col gap-6 md:gap-8 animate-fade-in">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">Your Dashboard</h2>
+          <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">An overview of your personal library, platform statistics, and active learning goals.</p>
+        </div>
+        <!-- Add button hidden on mobile since we have bottom FAB -->
+        <button class="quick-add-trigger hidden md:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition-all hover:translate-y-[-1px] shadow-lg shadow-brand-600/20 active:scale-95">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>Add New Bookmark</span>
+        </button>
+      </div>
+
+      <!-- Resume Learning Widget & Streak Widget -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Resume Learning Card -->
+        <div id="continue-learning-widget" class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+          <div>
+            <div class="flex items-center justify-between mb-3.5">
+              <span class="text-2xs font-extrabold text-brand-600 dark:text-brand-400 uppercase tracking-widest flex items-center"><i data-lucide="play-circle" class="w-4 h-4 mr-1 shrink-0"></i> Resume Learning</span>
+              <span id="resume-last-accessed" class="text-3xs text-slate-400 font-semibold">Accessed recently</span>
+            </div>
+            <h4 id="resume-title" class="text-base font-extrabold text-slate-850 dark:text-slate-100 line-clamp-1 mb-1.5">No resources opened yet</h4>
+            <div class="flex items-center gap-2 mb-3.5">
+              <span id="resume-platform" class="text-3xs px-2 py-0.5 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 rounded-full font-bold uppercase">None</span>
+              <span id="resume-position-tag" class="hidden text-3xs text-brand-650 dark:text-brand-455 font-bold bg-brand-50 dark:bg-brand-950/30 px-2 py-0.5 rounded border border-brand-100/50">Position: -</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mb-1">
+              <div id="resume-progress-bar" class="bg-brand-600 dark:bg-brand-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+          <button id="resume-action-btn" class="w-full h-11 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-600/10 active:scale-95 transition-all flex items-center justify-center gap-1.5 mt-4" disabled>
+            <i data-lucide="external-link" class="w-4 h-4"></i> Open and Resume Learning
+          </button>
+        </div>
+
+        <!-- Streak Card -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+          <div>
+            <div class="flex items-center justify-between mb-3.5">
+              <span class="text-2xs font-extrabold text-amber-500 uppercase tracking-widest flex items-center"><i data-lucide="zap" class="w-4 h-4 mr-1 shrink-0"></i> Learning Streak</span>
+              <span id="streak-longest-txt" class="text-3xs text-slate-400 font-bold">Longest: 0 days</span>
+            </div>
+            
+            <div class="flex items-center gap-4 mb-3.5">
+              <div class="p-3 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center border border-amber-500/20 shrink-0">
+                <i data-lucide="flame" class="w-8 h-8 fill-amber-500"></i>
+              </div>
+              <div>
+                <span id="streak-count-txt" class="text-3xl font-extrabold tracking-tight">0 Days</span>
+                <p class="text-3xs text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Current learning streak</p>
+              </div>
+            </div>
+
+            <!-- Streak Badges List -->
+            <div class="flex flex-wrap gap-1.5 mb-4 min-h-[1.5rem]" id="streak-badges-container">
+              <!-- Dynamically populated badges -->
+            </div>
+          </div>
+          
+          <!-- Heatmap grid wrapper -->
+          <div class="border-t border-slate-100 dark:border-slate-800 pt-3">
+            <span class="text-3xs font-extrabold text-slate-400 uppercase tracking-wider block mb-2">Weekly Activity Heatmap</span>
+            <div class="flex justify-between items-center gap-1" id="streak-heatmap-grid">
+              <!-- Heatmap weekly blocks -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overall Completion Bar -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 md:p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+        <div class="flex-1 w-full">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs md:text-sm font-bold text-slate-700 dark:text-slate-300">Overall Progress</span>
+            <span id="dashboard-completion-text" class="text-2xs md:text-xs font-extrabold text-brand-600 dark:text-brand-400">0% Complete</span>
+          </div>
+          <div class="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden">
+            <div id="dashboard-completion-bar" class="bg-brand-600 dark:bg-brand-500 h-full rounded-full transition-all duration-750" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="w-full sm:w-auto shrink-0 flex items-center justify-center p-3 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 text-2xs md:text-xs font-semibold border border-brand-500/20 text-center">
+          <i data-lucide="award" class="w-5 h-5 mr-2 shrink-0"></i>
+          Keep building your knowledge!
+        </div>
+      </div>
+
+      <!-- Quick Metrics Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+        <!-- Total Links -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 md:p-5 rounded-2xl shadow-sm transition-all hover:translate-y-[-2px]">
+          <div class="text-slate-400 dark:text-slate-500 flex items-center justify-between mb-1">
+            <span class="text-3xs md:text-xs font-bold uppercase tracking-wider">Total</span>
+            <i data-lucide="link-2" class="w-4 h-4 text-brand-500"></i>
+          </div>
+          <span id="total-links-count" class="text-2xl md:text-3xl font-extrabold tracking-tight">0</span>
+        </div>
+
+        <!-- Read Links -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 md:p-5 rounded-2xl shadow-sm transition-all hover:translate-y-[-2px]">
+          <div class="text-slate-400 dark:text-slate-500 flex items-center justify-between mb-1">
+            <span class="text-3xs md:text-xs font-bold uppercase tracking-wider">Completed</span>
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
+          </div>
+          <span id="read-links-count" class="text-2xl md:text-3xl font-extrabold tracking-tight">0</span>
+        </div>
+
+        <!-- Unread Links -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 md:p-5 rounded-2xl shadow-sm transition-all hover:translate-y-[-2px]">
+          <div class="text-slate-400 dark:text-slate-500 flex items-center justify-between mb-1">
+            <span class="text-3xs md:text-xs font-bold uppercase tracking-wider">Unread</span>
+            <i data-lucide="help-circle" class="w-4 h-4 text-slate-550"></i>
+          </div>
+          <span id="unread-links-count" class="text-2xl md:text-3xl font-extrabold tracking-tight">0</span>
+        </div>
+
+        <!-- Favorite Links -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 md:p-5 rounded-2xl shadow-sm transition-all hover:translate-y-[-2px]">
+          <div class="text-slate-400 dark:text-slate-500 flex items-center justify-between mb-1">
+            <span class="text-3xs md:text-xs font-bold uppercase tracking-wider">Favorites</span>
+            <i data-lucide="heart" class="w-4 h-4 text-rose-500 fill-rose-500/20"></i>
+          </div>
+          <span id="favorite-links-count" class="text-2xl md:text-3xl font-extrabold tracking-tight">0</span>
+        </div>
+
+        <!-- Learning Links -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 md:p-5 rounded-2xl shadow-sm transition-all hover:translate-y-[-2px] col-span-2 lg:col-span-1">
+          <div class="text-slate-400 dark:text-slate-500 flex items-center justify-between mb-1">
+            <span class="text-3xs md:text-xs font-bold uppercase tracking-wider">Learning Now</span>
+            <i data-lucide="book-open" class="w-4 h-4 text-amber-500"></i>
+          </div>
+          <span id="learning-links-count" class="text-2xl md:text-3xl font-extrabold tracking-tight">0</span>
+        </div>
+      </div>
+
+      <!-- Learning Queue Widget -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-2">
+            <i data-lucide="list-ordered" class="w-5 h-5 text-brand-500"></i>
+            <h3 class="text-md md:text-lg font-bold text-slate-800 dark:text-slate-200">Learning Queue</h3>
+          </div>
+          <span id="queue-completion-text" class="text-2xs font-extrabold text-brand-600 dark:text-brand-400">0 Items</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <!-- Next Up Highlight Card -->
+          <div class="lg:col-span-1 p-4 rounded-xl border border-brand-150/40 bg-brand-50/10 dark:border-brand-900/40 dark:bg-brand-950/10 flex flex-col justify-between min-h-[10rem]" id="queue-next-up-card">
+            <!-- Dynamically populated next up card -->
+          </div>
+
+          <!-- Queue list -->
+          <div class="lg:col-span-2 overflow-y-auto max-h-56 pr-1 flex flex-col gap-2" id="queue-items-list">
+            <!-- List of queue items with Up/Down buttons -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Section (SVG & Heatmaps) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Donut SVG Platform distribution chart -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm flex flex-col">
+          <div class="flex items-center gap-2 mb-4">
+            <i data-lucide="pie-chart" class="w-4.5 h-4.5 text-brand-500"></i>
+            <h3 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Platform Share</h3>
+          </div>
+          <div class="flex-1 flex flex-col sm:flex-row items-center gap-4 justify-center">
+            <!-- Donut SVG Container -->
+            <div id="analytics-platforms-chart" class="w-32 h-32 shrink-0 flex items-center justify-center"></div>
+            <!-- Legends list -->
+            <div id="analytics-platforms-legend" class="flex-1 flex flex-col gap-1 w-full max-h-36 overflow-y-auto text-2xs font-bold text-slate-500 pr-1"></div>
+          </div>
+        </div>
+
+        <!-- Completion Stages progress distribution bars -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm flex flex-col">
+          <div class="flex items-center gap-2 mb-4">
+            <i data-lucide="bar-chart-2" class="w-4.5 h-4.5 text-brand-500"></i>
+            <h3 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Completion Stages</h3>
+          </div>
+          <div class="flex-1 flex flex-col gap-3 justify-center" id="analytics-progress-chart">
+            <!-- Dynamically rendered horizontal status bar rows -->
+          </div>
+        </div>
+
+        <!-- GitHub Heatmap grid of 30 blocks -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm flex flex-col col-span-1 md:col-span-2 lg:col-span-1">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="calendar" class="w-4.5 h-4.5 text-brand-500"></i>
+              <h3 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Activity Log</h3>
+            </div>
+            <span class="text-3xs text-slate-400 font-bold" id="analytics-heatmap-summary">Active last 30 days</span>
+          </div>
+          <div class="flex-1 flex flex-col justify-center">
+            <div class="grid grid-cols-10 gap-1.5 w-fit mx-auto" id="analytics-monthly-heatmap">
+              <!-- 30 blocks dynamically created -->
+            </div>
+            <div class="flex justify-between w-full max-w-[200px] mx-auto text-3xs text-slate-400 font-semibold mt-3">
+              <span>Less</span>
+              <div class="flex gap-0.5 items-center">
+                <span class="w-2.5 h-2.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200/40 dark:border-slate-700"></span>
+                <span class="w-2.5 h-2.5 rounded bg-brand-500/30"></span>
+                <span class="w-2.5 h-2.5 rounded bg-brand-500/60"></span>
+                <span class="w-2.5 h-2.5 rounded bg-brand-600"></span>
+              </div>
+              <span>More</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Platform Distribution Table (Legacy, but let's keep it below charts as additional grid items) -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm">
+        <div class="flex items-center gap-2 mb-4">
+          <i data-lucide="list" class="w-5 h-5 text-brand-500"></i>
+          <h3 class="text-md font-bold text-slate-800 dark:text-slate-200">Platform Breakdown Grid</h3>
+        </div>
+        <div id="platform-breakdown-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 animate-slide-in">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Recently Opened List -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm max-w-xl">
+        <div class="flex items-center gap-2 mb-4">
+          <i data-lucide="clock" class="w-5 h-5 text-brand-500"></i>
+          <h3 class="text-md font-bold text-slate-800 dark:text-slate-200">Recently Opened</h3>
+        </div>
+        <div id="recently-viewed-list" class="flex flex-col gap-3">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== LIBRARY (LINKS) VIEW ==================== -->
+    <section id="links-view" class="view-section hidden flex flex-col gap-5 md:gap-6 animate-fade-in">
+      
+      <!-- Top Title and Toolbar -->
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
+        <div>
+          <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">Your Library</h2>
+          <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">Manage and search your entire index of bookmarks, notes, and sub-link targets.</p>
+        </div>
+
+        <!-- Layout switch button combo -->
+        <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+          <div class="flex bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl border border-slate-200/60 dark:border-slate-800">
+            <button id="layout-grid-btn" class="p-1.5 rounded-lg bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100 transition-all active:scale-95" title="Grid Layout">
+              <i data-lucide="grid" class="w-4 h-4"></i>
+            </button>
+            <button id="layout-list-btn" class="p-1.5 rounded-lg text-slate-400 transition-all active:scale-95" title="List Layout">
+              <i data-lucide="list" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <!-- Desktop Add Link Button -->
+          <button class="quick-add-trigger hidden md:flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold transition-all hover:translate-y-[-1px] shadow-lg shadow-brand-600/20 active:scale-95">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Add Link</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters & Sorting Bar -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-sm flex flex-col gap-4 lg:flex-row lg:items-center">
+        <!-- Search bar -->
+        <div class="relative w-full lg:flex-1">
+          <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4.5 h-4.5"></i>
+          <!-- Suggestions container dropdown parent -->
+          <div class="relative w-full">
+            <input type="text" id="search-input" autocomplete="off" placeholder="Search title, tags, notes, url... (Press '/' to focus)" class="w-full pl-10 pr-4 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all custom-input" />
+            <!-- Real-time Search Suggestions Dropdown -->
+            <div id="search-suggestions-dropdown" class="hidden absolute left-0 right-0 top-12 mt-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 shadow-2xl z-40 max-h-56 overflow-y-auto py-2 text-sm font-semibold">
+              <!-- Injected dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Selects Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
+          <!-- Platform Filter -->
+          <div class="relative">
+            <select id="filter-platform" class="w-full appearance-none bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3 h-11 rounded-xl text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer pr-8">
+              <option value="">All Platforms</option>
+              <option value="instagram">Instagram</option>
+              <option value="youtube">YouTube</option>
+              <option value="twitter">Twitter/X</option>
+              <option value="facebook">Facebook</option>
+              <option value="reddit">Reddit</option>
+              <option value="website">Websites</option>
+              <option value="blog">Blogs</option>
+              <option value="article">Articles</option>
+              <option value="pdf">PDFs</option>
+              <option value="documentation">Documentation</option>
+              <option value="custom">Custom Link</option>
+            </select>
+            <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+
+          <!-- Favorite Filter -->
+          <div class="relative">
+            <select id="filter-favorite" class="w-full appearance-none bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3 h-11 rounded-xl text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer pr-8">
+              <option value="">All Favorites</option>
+              <option value="true">Favorites Only</option>
+              <option value="false">Non-Favorites</option>
+            </select>
+            <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+
+          <!-- Read Status Filter -->
+          <div class="relative">
+            <select id="filter-read-status" class="w-full appearance-none bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3 h-11 rounded-xl text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer pr-8">
+              <option value="">All Read States</option>
+              <option value="unread">Unread Only</option>
+              <option value="read">Read Only</option>
+            </select>
+            <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+
+          <!-- Tags Dropdown -->
+          <div class="relative">
+            <select id="filter-tag" class="w-full appearance-none bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3 h-11 rounded-xl text-slate-605 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer pr-8">
+              <option value="">All Tags</option>
+            </select>
+            <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sorting -->
+        <div class="shrink-0 flex items-center justify-between lg:justify-end gap-2 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 pt-3 lg:pt-0 lg:pl-4 w-full lg:w-auto">
+          <label for="sort-by" class="text-3xs font-bold text-slate-400 uppercase tracking-wider shrink-0">Sort By</label>
+          <div class="relative flex-1 lg:flex-initial">
+            <select id="sort-by" class="w-full appearance-none bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-xs font-bold px-3 h-11 rounded-xl text-slate-600 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer pr-8">
+              <option value="newest">Newest Added</option>
+              <option value="oldest">Oldest Added</option>
+              <option value="recentlyUpdated">Recently Updated</option>
+              <option value="alphabetical">Alphabetical (A-Z)</option>
+            </select>
+            <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Library Grid/List Layout -->
+      <div id="library-list">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+    <!-- ==================== LEARNING TRACKER VIEW ==================== -->
+    <section id="learning-view" class="view-section hidden flex flex-col gap-5 md:gap-6 animate-fade-in">
+      <div class="border-b border-slate-200 dark:border-slate-800 pb-5">
+        <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">Active Learning Tracker</h2>
+        <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">Items that are marked as currently in-progress. Keep focused on these topics to meet your goals.</p>
+      </div>
+
+      <!-- Core learning list -->
+      <div id="learning-list">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+    <!-- Bulk Action Overlay Sticky Bar -->
+    <div id="bulk-action-bar" class="hidden fixed bottom-20 md:bottom-6 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 bg-slate-900/90 dark:bg-slate-800/95 border border-slate-800 dark:border-slate-700 px-4 md:px-6 py-3.5 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 z-45 text-white backdrop-blur-md max-w-xl w-auto md:w-full mx-auto animate-slide-in">
+      <div class="flex items-center gap-3 justify-between w-full sm:w-auto">
+        <div class="flex items-center gap-3">
+          <input type="checkbox" id="bulk-select-all" class="w-5 h-5 rounded text-brand-500 bg-slate-800 border-slate-700 focus:ring-brand-500 cursor-pointer" />
+          <label for="bulk-select-all" class="text-xs font-semibold cursor-pointer select-none">Select All</label>
+        </div>
+        <span class="h-4 w-px bg-slate-800 hidden sm:block"></span>
+        <span id="bulk-selected-count" class="text-xs font-bold text-brand-400">0 selected</span>
+      </div>
+
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <button id="bulk-read-btn" class="flex-1 sm:flex-initial h-10 px-3 bg-slate-800 hover:bg-slate-750 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 active:scale-95">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          Mark Read
+        </button>
+        <button id="bulk-fav-btn" class="flex-1 sm:flex-initial h-10 px-3 bg-slate-800 hover:bg-slate-750 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 active:scale-95">
+          <i data-lucide="heart" class="w-3.5 h-3.5"></i>
+          Favorite
+        </button>
+        <button id="bulk-delete-btn" class="flex-1 sm:flex-initial h-10 px-4 bg-rose-600 hover:bg-rose-700 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 active:scale-95">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          Delete
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== DIALOG MODALS ==================== -->
+  
+  <!-- Add/Edit Link Modal -->
+  <div id="add-link-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-center justify-center p-4 modal-overlay transition-opacity duration-300">
+    <div class="modal-content w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden transform translate-y-4 scale-95 transition-all duration-300 max-h-[90vh] md:max-h-none flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="bookmark" class="w-5 h-5 text-brand-500"></i>
+          <h3 id="modal-title-text" class="text-md md:text-lg font-bold text-slate-800 dark:text-slate-100">Add New Bookmark</h3>
+        </div>
+        <button onclick="App.closeAllModals()" class="p-2 -mr-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Form Body -->
+      <form id="add-link-form" class="p-5 flex flex-col gap-4 overflow-y-auto flex-1 select-text">
+        <!-- Duplicate Alert Box -->
+        <div id="duplicate-url-alert" class="hidden p-3 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-semibold rounded-xl">
+          Warning: URL matches existing bookmark.
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Main URL -->
+          <div class="md:col-span-2">
+            <label for="link-url" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Main URL <span class="text-rose-500">*</span></label>
+            <input type="url" id="link-url" inputmode="url" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="https://youtube.com/watch?v=..." class="w-full px-3 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all custom-input" required />
+          </div>
+
+          <!-- Platform Selector -->
+          <div>
+            <label for="link-platform" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Platform Type</label>
+            <div class="relative">
+              <select id="link-platform" class="w-full appearance-none px-3 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all cursor-pointer pr-8">
+                <option value="website">Website</option>
+                <option value="instagram">Instagram</option>
+                <option value="youtube">YouTube</option>
+                <option value="twitter">Twitter/X</option>
+                <option value="facebook">Facebook</option>
+                <option value="reddit">Reddit</option>
+                <option value="blog">Blog</option>
+                <option value="article">Article</option>
+                <option value="pdf">PDF File</option>
+                <option value="documentation">Documentation</option>
+                <option value="custom">Custom</option>
+              </select>
+              <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <div>
+          <label for="link-title" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Bookmark Title <span class="text-rose-500">*</span></label>
+          <input type="text" id="link-title" placeholder="How to learn CSS Grid in 2 hours" class="w-full px-3 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-955 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all custom-input" required />
+        </div>
+
+        <!-- Notes (with Markdown edit/preview toggles) -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Notes & Thoughts (Markdown Support)</label>
+            <div class="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200/50 dark:border-slate-700">
+              <button type="button" id="notes-tab-edit" class="px-2 py-0.5 text-3xs font-extrabold bg-white dark:bg-slate-700 rounded shadow-sm text-slate-850 dark:text-slate-100 transition-all active:scale-95">Edit</button>
+              <button type="button" id="notes-tab-preview" class="px-2 py-0.5 text-3xs font-bold text-slate-400 dark:text-slate-500 transition-all active:scale-95">Preview</button>
+            </div>
+          </div>
+          <div id="notes-edit-container">
+            <textarea id="link-notes" rows="3" spellcheck="true" placeholder="Add takeaways, headings (#), bold (**bold**), links ([Anchor](url))..." class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all custom-input"></textarea>
+            <div id="notes-autosave-indicator" class="text-3xs text-brand-500 dark:text-brand-400 text-right mt-1 hidden font-extrabold">Auto-saved</div>
+          </div>
+          <div id="notes-preview-container" class="hidden min-h-[5.5rem] max-h-40 overflow-y-auto p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-955 text-sm select-text prose dark:prose-invert break-words leading-relaxed">
+            <!-- Preview rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Progress and Position Settings -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Progress select -->
+          <div>
+            <label for="link-progress" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Progress Status</label>
+            <div class="relative">
+              <select id="link-progress" class="w-full appearance-none px-3 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-955 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all cursor-pointer pr-8">
+                <option value="0">Not Started (0%)</option>
+                <option value="25">In Progress (25%)</option>
+                <option value="50">Halfway (50%)</option>
+                <option value="75">Nearly Complete (75%)</option>
+                <option value="100">Completed (100%)</option>
+              </select>
+              <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400">
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Position input -->
+          <div>
+            <label for="link-position" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Current Position</label>
+            <input type="text" id="link-position" placeholder="e.g. Chapter 3, 12:30 mins" class="w-full px-3 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-955 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all custom-input" />
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div>
+          <label for="link-tags" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Tags (Comma-separated)</label>
+          <input type="text" id="link-tags" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="css, grid, layout, tutorial" class="w-full px-3 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all custom-input" />
+        </div>
+
+        <!-- Checkbox status rows -->
+        <div class="flex flex-col sm:flex-row sm:flex-wrap gap-x-6 gap-y-2 py-2.5 border-y border-slate-100 dark:border-slate-800">
+          <label class="flex items-center gap-3 cursor-pointer py-1.5 px-1 text-sm font-semibold select-none">
+            <input type="checkbox" id="link-favorite" class="w-5 h-5 rounded text-brand-500 border-slate-300 dark:border-slate-750 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer" />
+            <span>Mark as Favorite</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer py-1.5 px-1 text-sm font-semibold select-none">
+            <input type="checkbox" id="link-learning" class="w-5 h-5 rounded text-brand-500 border-slate-300 dark:border-slate-750 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer" />
+            <span>Learning In-Progress</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer py-1.5 px-1 text-sm font-semibold select-none">
+            <input type="checkbox" id="link-queue" class="w-5 h-5 rounded text-brand-500 border-slate-300 dark:border-slate-750 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer" />
+            <span>Add to Queue</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer py-1.5 px-1 text-sm font-semibold select-none">
+            <input type="checkbox" id="link-read" class="w-5 h-5 rounded text-brand-500 border-slate-300 dark:border-slate-750 focus:ring-brand-500 focus:ring-offset-0 cursor-pointer" />
+            <span>Completed (Read)</span>
+          </label>
+        </div>
+
+        <!-- Dynamic YouTube & Instagram Sub-links Section -->
+        <div id="platform-specific-fields" class="hidden flex flex-col gap-4 p-4 rounded-2xl bg-brand-50/40 dark:bg-brand-950/20 border border-brand-100/50 dark:border-brand-900/30">
+          <h4 class="text-sm font-bold text-brand-600 dark:text-brand-400 flex items-center"><i data-lucide="sparkles" class="w-4 h-4 mr-2"></i>Platform Specific Extras</h4>
+          
+          <!-- Next Suggested Link -->
+          <div>
+            <label for="link-next-suggested" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Next Suggested Link</label>
+            <input type="url" id="link-next-suggested" inputmode="url" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="https://..." class="w-full px-3 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all custom-input" />
+          </div>
+
+          <!-- Multiple Sub links container -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Sub-Links / References</label>
+              <button type="button" id="add-sublink-btn" class="h-10 px-3 text-xs font-bold text-brand-600 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-300 flex items-center gap-1 bg-brand-500/5 dark:bg-brand-500/10 rounded-lg active:scale-95 transition-all">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Sub-Link
+              </button>
+            </div>
+            <div id="sublinks-form-container" class="flex flex-col gap-2">
+              <!-- Sub links rows injected dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Submit Footer -->
+        <div class="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 shrink-0">
+          <button type="button" onclick="App.closeAllModals()" class="h-11 px-5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors active:scale-95">Cancel</button>
+          <button type="submit" class="h-11 px-6 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-brand-600/15 active:scale-95 transition-all">Save Bookmark</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Duplicate Check Warning Modal -->
+  <div id="duplicate-warning-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-center justify-center p-4 modal-overlay transition-opacity duration-300">
+    <div class="modal-content w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden transform translate-y-4 scale-95 transition-all duration-300">
+      <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500 animate-bounce"></i>
+          <h3 class="text-md font-bold text-slate-850 dark:text-slate-100">Duplicate URL Detected</h3>
+        </div>
+      </div>
+      <div class="p-5 flex flex-col gap-3">
+        <p class="text-sm text-slate-600 dark:text-slate-400">
+          This URL is already saved in your library under the title:
+        </p>
+        <div class="p-3 bg-slate-50 dark:bg-slate-850 rounded-xl border border-slate-200 dark:border-slate-800 font-extrabold text-sm text-brand-600 dark:text-brand-400" id="duplicate-warning-title">
+          Matching Title Name
+        </div>
+        <p class="text-xs text-slate-450 dark:text-slate-500 leading-relaxed">
+          Do you want to save this copy anyway as a duplicate, or cancel the save operation?
+        </p>
+      </div>
+      <div class="px-5 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5">
+        <button id="duplicate-cancel-btn" class="h-10 px-4 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors active:scale-95">Cancel</button>
+        <button id="duplicate-confirm-btn" class="h-10 px-4 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-semibold shadow-md active:scale-95 transition-transform">Save Anyway</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Cheat Sheet Modal -->
+  <div id="shortcuts-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm items-center justify-center p-4 modal-overlay transition-opacity duration-300">
+    <div class="modal-content w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden transform translate-y-4 scale-95 transition-all duration-300">
+      <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="keyboard" class="w-5 h-5 text-brand-500"></i>
+          <h3 class="text-sm md:text-md font-bold text-slate-800 dark:text-slate-100">Keyboard Shortcuts</h3>
+        </div>
+        <button onclick="App.closeAllModals()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 flex flex-col gap-4 text-xs md:text-sm">
+        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-850">
+          <span class="font-medium text-slate-600 dark:text-slate-400">Open Quick Add Modal</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-md font-mono text-3xs font-extrabold text-brand-650 dark:text-brand-400">N</kbd>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-850">
+          <span class="font-medium text-slate-600 dark:text-slate-400">Focus Search Bar</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-md font-mono text-3xs font-extrabold text-brand-650 dark:text-brand-400">/</kbd>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-850">
+          <span class="font-medium text-slate-600 dark:text-slate-400">Close Open Modal</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-md font-mono text-3xs font-extrabold text-brand-650 dark:text-brand-400">ESC</kbd>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-850">
+          <span class="font-medium text-slate-600 dark:text-slate-400">Switch to Dashboard</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-md font-mono text-3xs font-extrabold text-brand-655 dark:text-brand-400">D</kbd>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-850">
+          <span class="font-medium text-slate-600 dark:text-slate-400">Switch to Library</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-md font-mono text-3xs font-extrabold text-brand-655 dark:text-brand-400">L</kbd>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-850">
+          <span class="font-medium text-slate-600 dark:text-slate-400">Switch to Learning Tracker</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-md font-mono text-3xs font-extrabold text-brand-655 dark:text-brand-400">T</kbd>
+        </div>
+        <div class="flex justify-between items-center py-2">
+          <span class="font-medium text-slate-600 dark:text-slate-400">Show keyboard map</span>
+          <kbd class="px-2 py-0.5 bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-md font-mono text-3xs font-extrabold text-brand-655 dark:text-brand-400">?</kbd>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lucide Icon script loader -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Module/App script chains -->
+  <script src="js/db.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/shortcuts.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
+
