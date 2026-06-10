@@ -351,7 +351,7 @@ const App = (() => {
    * Router/SPA View Navigator
    */
   const navigateTo = (viewName) => {
-    if (!['dashboard', 'links', 'learning'].includes(viewName)) return;
+    if (!['dashboard', 'links', 'learning', 'settings'].includes(viewName)) return;
 
     state.activeView = viewName;
     localStorage.setItem('pkm_active_view', viewName);
@@ -798,6 +798,56 @@ const App = (() => {
         }
       });
 
+      // Fetch metadata on blur or paste
+      linkUrlInput.addEventListener('blur', async (e) => {
+        const url = e.target.value.trim();
+        if (!url || state.editingLinkId) return; // Only auto-fill for new bookmarks
+
+        const platform = linkPlatformSelect.value;
+        const loadingBox = document.getElementById('metadata-loading');
+        const previewContainer = document.getElementById('metadata-preview-container');
+        const thumbImg = document.getElementById('metadata-thumbnail');
+        const descTxt = document.getElementById('metadata-desc');
+        
+        if (loadingBox) loadingBox.classList.remove('hidden');
+
+        try {
+          const meta = await MetadataService.extract(url, platform);
+          if (meta) {
+            const titleInput = document.getElementById('link-title');
+            if (meta.title && !titleInput.value) {
+              titleInput.value = meta.title;
+            }
+
+            if (meta.thumbnail) {
+              previewContainer.classList.remove('hidden');
+              thumbImg.src = meta.thumbnail;
+              descTxt.innerText = meta.description || 'No description available';
+            }
+
+            // AI Enrichment
+            if (typeof AIEnrichmentService !== 'undefined' && AIEnrichmentService.isEnabled()) {
+              const aiData = await AIEnrichmentService.enrich(meta.title || '', meta.description || '', url);
+              if (aiData) {
+                if (aiData.summary) {
+                  const notesInput = document.getElementById('link-notes');
+                  if (!notesInput.value) notesInput.value = aiData.summary;
+                }
+                if (aiData.tags && aiData.tags.length > 0) {
+                  const tagsInput = document.getElementById('link-tags');
+                  if (!tagsInput.value) tagsInput.value = aiData.tags.join(', ');
+                }
+                descTxt.innerText = `${aiData.category || ''} • ${aiData.difficulty || ''}\n${aiData.summary || ''}`.trim();
+              }
+            }
+          }
+        } catch (err) {
+          console.warn("Metadata extraction error:", err);
+        } finally {
+          if (loadingBox) loadingBox.classList.add('hidden');
+        }
+      });
+
       linkPlatformSelect.addEventListener('change', (e) => {
         togglePlatformFormFields(e.target.value);
       });
@@ -1226,6 +1276,17 @@ const App = (() => {
           }
         }
       });
+
+      // Settings API Key binding
+      const settingsKeyInput = document.getElementById('settings-openrouter-key');
+      const settingsSaveBtn = document.getElementById('settings-save-btn');
+      if (settingsKeyInput && settingsSaveBtn && typeof AIEnrichmentService !== 'undefined') {
+        settingsKeyInput.value = AIEnrichmentService.getApiKey();
+        settingsSaveBtn.addEventListener('click', () => {
+          AIEnrichmentService.setApiKey(settingsKeyInput.value.trim());
+          UIManager.showToast('Settings saved successfully', 'success');
+        });
+      }
     };
 
   /**
@@ -1355,6 +1416,14 @@ const App = (() => {
     // Notes tab resets
     document.getElementById('notes-tab-edit').click();
     document.getElementById('notes-autosave-indicator').classList.add('hidden');
+
+    // Clear metadata preview
+    const previewContainer = document.getElementById('metadata-preview-container');
+    if (previewContainer) {
+      previewContainer.classList.add('hidden');
+      document.getElementById('metadata-thumbnail').src = '';
+      document.getElementById('metadata-desc').innerText = 'Loading metadata...';
+    }
 
     togglePlatformFormFields('website');
   };

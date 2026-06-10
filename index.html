@@ -124,6 +124,10 @@
         <i data-lucide="book-open" class="w-4 h-4 shrink-0"></i>
         <span>Learning Tracker</span>
       </a>
+      <a href="#" data-view="settings" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200">
+        <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
+        <span>Settings</span>
+      </a>
     </nav>
 
     <!-- Sidebar Footer Actions -->
@@ -193,6 +197,10 @@
         <a href="#" data-view="learning" class="drawer-nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
           <i data-lucide="book-open" class="w-4.5 h-4.5"></i>
           <span>Active Learning Goals</span>
+        </a>
+        <a href="#" data-view="settings" class="drawer-nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all">
+          <i data-lucide="settings" class="w-4.5 h-4.5"></i>
+          <span>Settings</span>
         </a>
 
         <div class="h-px bg-slate-100 dark:bg-slate-800 my-3"></div>
@@ -646,6 +654,33 @@
       </div>
     </section>
 
+    <!-- ==================== SETTINGS VIEW ==================== -->
+    <section id="settings-view" class="view-section hidden flex flex-col gap-6 md:gap-8 animate-fade-in">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight">Settings</h2>
+          <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1">Configure integrations and app preferences.</p>
+        </div>
+      </div>
+      
+      <!-- AI Integrations Widget -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-2xl shadow-sm max-w-2xl">
+        <div class="flex items-center gap-2 mb-4">
+          <i data-lucide="bot" class="w-5 h-5 text-brand-500"></i>
+          <h3 class="text-md font-bold text-slate-800 dark:text-slate-200">AI Features (Optional)</h3>
+        </div>
+        <p class="text-xs text-slate-500 mb-4">Enter your OpenRouter API key to automatically generate summaries, tags, and categorize your saved links.</p>
+        
+        <div>
+          <label for="settings-openrouter-key" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">OpenRouter API Key</label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input type="password" id="settings-openrouter-key" placeholder="sk-or-v1-..." class="w-full px-3 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all custom-input" />
+            <button id="settings-save-btn" class="h-11 px-5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-semibold shadow-md active:scale-95 transition-all shrink-0">Save Key</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Bulk Action Overlay Sticky Bar -->
     <div id="bulk-action-bar" class="hidden fixed bottom-20 md:bottom-6 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 bg-slate-900/90 dark:bg-slate-800/95 border border-slate-800 dark:border-slate-700 px-4 md:px-6 py-3.5 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4 z-45 text-white backdrop-blur-md max-w-xl w-auto md:w-full mx-auto animate-slide-in">
       <div class="flex items-center gap-3 justify-between w-full sm:w-auto">
@@ -830,6 +865,18 @@
           </div>
         </div>
 
+        <!-- Metadata Loading & Preview -->
+        <div id="metadata-loading" class="hidden flex items-center gap-2 text-xs font-semibold text-brand-600 dark:text-brand-400 my-2">
+          <i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Extracting metadata & AI insights...
+        </div>
+        <div id="metadata-preview-container" class="hidden flex gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 mt-2">
+          <img id="metadata-thumbnail" class="w-20 h-20 object-cover rounded-lg bg-slate-200 dark:bg-slate-700" src="" alt="Thumbnail" />
+          <div class="flex flex-col justify-center flex-1 min-w-0">
+            <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-1">Preview Metadata</span>
+            <p id="metadata-desc" class="text-xs text-slate-600 dark:text-slate-400 line-clamp-3">Loading metadata...</p>
+          </div>
+        </div>
+
         <!-- Form Submit Footer -->
         <div class="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 shrink-0">
           <button type="button" onclick="App.closeAllModals()" class="h-11 px-5 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors active:scale-95">Cancel</button>
@@ -917,6 +964,8 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- Module/App script chains -->
+  <script src="js/metadata.js"></script>
+  <script src="js/ai.js"></script>
   <script src="js/db.js"></script>
   <script src="js/theme.js"></script>
   <script src="js/shortcuts.js"></script>
