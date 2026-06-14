@@ -543,3 +543,51 @@ mark {
   }
 }
 
+/* Custom Checkbox Styling */
+.bulk-select-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #f8fafc;
+  margin: 0;
+  cursor: pointer;
+  width: 20px !important;
+  height: 20px !important;
+  border: 2px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  display: grid;
+  place-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .bulk-select-checkbox {
+  background-color: #1e293b;
+  border-color: #475569 !important;
+}
+
+.bulk-select-checkbox:hover {
+  border-color: var(--brand-400) !important;
+  transform: scale(1.05);
+}
+
+.bulk-select-checkbox::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  transform: scale(0);
+  transition: 120ms transform cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 1em 1em white;
+  background-color: white;
+  transform-origin: center;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.bulk-select-checkbox:checked {
+  background-color: var(--brand-500) !important;
+  border-color: var(--brand-500) !important;
+  box-shadow: 0 2px 8px var(--brand-glow);
+}
+
+.bulk-select-checkbox:checked::before {
+  transform: scale(1);
+}
+

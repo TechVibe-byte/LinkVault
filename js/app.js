@@ -445,6 +445,9 @@ const App = (() => {
     if (!url) return 'website';
     const lowerUrl = url.toLowerCase().trim();
 
+    if (lowerUrl.includes('github.com')) return 'github';
+    if (lowerUrl.includes('linkedin.com')) return 'linkedin';
+    if (lowerUrl.includes('figma.com')) return 'figma';
     if (lowerUrl.includes('instagram.com')) return 'instagram';
     if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) return 'youtube';
     if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) return 'twitter';

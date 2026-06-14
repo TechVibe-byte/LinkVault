@@ -112,6 +112,9 @@ const UIManager = (() => {
       twitter: { name: 'twitter', color: 'text-sky-500 bg-sky-500/10 border-sky-500/20' },
       facebook: { name: 'facebook', color: 'text-blue-600 bg-blue-600/10 border-blue-600/20' },
       reddit: { name: 'message-square', color: 'text-orange-500 bg-orange-500/10 border-orange-500/20' },
+      github: { name: 'github', color: 'text-slate-800 dark:text-slate-200 bg-slate-500/10 border-slate-500/20' },
+      linkedin: { name: 'linkedin', color: 'text-blue-500 bg-blue-500/10 border-blue-500/20' },
+      figma: { name: 'figma', color: 'text-fuchsia-500 bg-fuchsia-500/10 border-fuchsia-500/20' },
       website: { name: 'globe', color: 'text-teal-500 bg-teal-500/10 border-teal-500/20' },
       blog: { name: 'pen-tool', color: 'text-amber-500 bg-amber-500/10 border-amber-500/20' },
       article: { name: 'file-text', color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' },
@@ -853,15 +856,6 @@ const UIManager = (() => {
               </div>
             </div>
           `;
-        } else {
-          thumbnailHTML = `
-            <div class="relative h-20 w-full overflow-hidden bg-gradient-to-br from-brand-500/20 to-violet-500/20 dark:from-brand-950/40 dark:to-violet-950/40 flex items-center justify-center border-b border-slate-100 dark:border-slate-800 shrink-0">
-              <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px]"></div>
-              <span class="p-2.5 rounded-2xl border ${meta.color} shadow-sm bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
-                <i data-lucide="${meta.name}" class="w-5 h-5"></i>
-              </span>
-            </div>
-          `;
         }
       }
 
@@ -918,91 +912,92 @@ const UIManager = (() => {
         return `
           <div class="platform-card platform-${link.platform} group relative flex flex-col bg-white dark:bg-slate-900 rounded-2xl border ${isSelected ? 'border-brand-600 dark:border-brand-500 ring-2 ring-brand-600/20' : 'border-slate-200/80 dark:border-slate-800'} shadow-sm hover:shadow-xl transition-all duration-300 flex-1 overflow-hidden" data-link-id="${link.id}">
             
-            <div class="absolute top-2.5 left-2.5 z-10 p-2">
-              <input type="checkbox" class="bulk-select-checkbox w-5 h-5 rounded border-slate-350 dark:border-slate-700 text-brand-600 focus:ring-brand-500 focus:ring-2 bg-white/95 dark:bg-slate-905/95 transition-all cursor-pointer" data-id="${link.id}" ${isSelected ? 'checked' : ''} />
+            ${ytId ? `
+            <div class="absolute top-3.5 left-3.5 z-20">
+              <input type="checkbox" class="bulk-select-checkbox w-[18px] h-[18px] rounded border-slate-300 dark:border-slate-600 text-brand-600 focus:ring-brand-500 focus:ring-2 bg-white dark:bg-slate-800 cursor-pointer shadow-sm transition-all" data-id="${link.id}" ${isSelected ? 'checked' : ''} />
             </div>
+            ` : ''}
 
             ${thumbnailHTML}
 
-            <div class="p-5 flex-1 flex flex-col justify-between">
+            <div class="p-5 flex-1 flex flex-col justify-between ${ytId ? 'pt-4' : 'pt-5'}">
               <div>
-                <!-- Header (Platforms & Progress labels) -->
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${meta.color} capitalize">
-                    <i data-lucide="${meta.name}" class="w-3 h-3"></i>
+                <!-- Clean Top Header row -->
+                <div class="flex items-center justify-between gap-3 mb-4">
+                  ${!ytId ? `
+                  <div class="flex items-center gap-2.5">
+                    <input type="checkbox" class="bulk-select-checkbox shrink-0" data-id="${link.id}" ${isSelected ? 'checked' : ''} />
+                    <span class="p-2 rounded-xl border ${meta.color} shadow-sm bg-white dark:bg-slate-900/50 flex items-center justify-center">
+                      <i data-lucide="${meta.name}" class="w-4 h-4"></i>
+                    </span>
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400 capitalize tracking-wide">${link.platform === 'pdf' ? 'PDF' : link.platform}</span>
+                  </div>
+                  ` : `
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${meta.color} capitalize">
                     ${link.platform === 'pdf' ? 'PDF' : link.platform}
                   </span>
-                  
-                  <div class="flex items-center gap-1">
-                    <!-- Progress Badge -->
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-2xs font-extrabold border ${progMeta.color}">
+                  `}
+
+                  <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-xl border border-slate-100 dark:border-slate-800">
+                    <span class="px-2 py-1 rounded-md text-[10px] font-extrabold tracking-wider uppercase border ${progMeta.color}">
                       ${progMeta.text}
                     </span>
-                    <button class="favorite-toggle-btn p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 dark:hover:bg-rose-500/20 transition-all active:scale-90" data-id="${link.id}" aria-label="Favorite">
-                      <i data-lucide="heart" class="w-4.5 h-4.5 ${link.favorite ? 'fill-rose-500 text-rose-500' : ''}"></i>
+                    <button class="favorite-toggle-btn p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 dark:hover:bg-rose-500/20 transition-all active:scale-90" data-id="${link.id}" aria-label="Favorite">
+                      <i data-lucide="heart" class="w-4 h-4 ${link.favorite ? 'fill-rose-500 text-rose-500' : ''}"></i>
                     </button>
-                    <button class="learning-toggle-btn p-2 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 dark:hover:bg-amber-500/20 transition-all active:scale-90" data-id="${link.id}" aria-label="Learning Status">
-                      <i data-lucide="book-open" class="w-4.5 h-4.5 ${link.currentLearning ? 'text-amber-500 fill-amber-500' : ''}"></i>
+                    <button class="learning-toggle-btn p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-500/10 dark:hover:bg-amber-500/20 transition-all active:scale-90" data-id="${link.id}" aria-label="Learning Status">
+                      <i data-lucide="book-open" class="w-4 h-4 ${link.currentLearning ? 'text-amber-500 fill-amber-500' : ''}"></i>
                     </button>
                   </div>
                 </div>
 
-                <!-- Title & Current Position tag -->
-                <div class="flex items-start justify-between gap-2 mb-1.5">
-                  <a href="${link.url}" target="_blank" data-id="${link.id}" class="card-main-anchor text-base font-extrabold text-slate-800 dark:text-slate-100 hover:text-brand-600 dark:hover:text-brand-400 leading-snug line-clamp-2 break-words flex-1">
-                    ${highlightedTitle}
-                  </a>
-                </div>
+                <!-- Title & Notes -->
+                <a href="${link.url}" target="_blank" data-id="${link.id}" class="card-main-anchor block text-base font-extrabold text-slate-800 dark:text-slate-100 hover:text-brand-600 dark:hover:text-brand-400 leading-snug line-clamp-2 break-words mb-2 group-hover:underline decoration-brand-500/30 underline-offset-4">
+                  ${highlightedTitle}
+                </a>
 
                 ${link.learningPosition ? `
                   <div class="mb-3">
-                    <span class="inline-flex items-center text-3xs font-extrabold text-brand-650 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/20 px-2 py-0.5 rounded border border-brand-100/50">
-                      <i data-lucide="bookmark-check" class="w-3 h-3 mr-1"></i> Position: ${link.learningPosition}
+                    <span class="inline-flex items-center text-[10px] font-extrabold text-brand-650 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/30 px-2 py-1 rounded-md border border-brand-100/50 dark:border-brand-900/50">
+                      <i data-lucide="bookmark-check" class="w-3 h-3 mr-1.5"></i> Position: ${link.learningPosition}
                     </span>
                   </div>
                 ` : ''}
 
-                <!-- Notes (renders highlight checks) -->
-                <div class="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mb-4 font-medium break-words leading-relaxed">
-                  ${highlightedNotes || '<span class="italic text-slate-400/80 dark:text-slate-500/80">No notes written.</span>'}
+                <div class="text-[13px] text-slate-500 dark:text-slate-450 line-clamp-3 mb-4 font-medium break-words leading-relaxed">
+                  ${highlightedNotes || '<span class="italic opacity-60">No notes written...</span>'}
                 </div>
 
                 <!-- Tags -->
-                <div class="flex flex-wrap gap-1.5 mb-2">
-                  ${tagsHTML}
-                </div>
+                ${tagsHTML ? `<div class="flex flex-wrap gap-1.5 mb-4">${tagsHTML}</div>` : ''}
               </div>
 
-              <!-- Metadata & Actions footer with Visual progress bar -->
-              <div>
-                <!-- Card progress bar visualizer -->
-                <div class="w-full bg-slate-100 dark:bg-slate-800 h-1 rounded-full overflow-hidden mb-3">
-                  <div class="${progMeta.bar} h-full" style="width: ${link.progress || 0}%"></div>
+              <!-- Footer with Glassmorphic feel -->
+              <div class="pt-4 border-t border-slate-100 dark:border-slate-800/80 mt-auto">
+                <div class="w-full bg-slate-100 dark:bg-slate-800/80 h-1.5 rounded-full overflow-hidden mb-4 shadow-inner">
+                  <div class="${progMeta.bar} h-full transition-all duration-1000 ease-out" style="width: ${link.progress || 0}%"></div>
                 </div>
 
                 ${nextSuggestHTML}
                 ${sublinksHTML}
 
-                <div class="flex flex-col xs:flex-row xs:items-center justify-between text-xs text-slate-400 dark:text-slate-500 mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/60 gap-3">
-                  <div class="flex flex-row xs:flex-col gap-3 xs:gap-0.5 shrink-0">
-                    <span class="flex items-center"><i data-lucide="calendar" class="w-3.5 h-3.5 mr-1 shrink-0"></i> Added ${formatRelativeTime(link.dateAdded)}</span>
-                    <span class="flex items-center"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1 shrink-0"></i> ${link.clickCount || 0} clicks</span>
+                <div class="flex items-center justify-between text-slate-400 dark:text-slate-500 mt-2">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="flex items-center text-[10px] font-bold uppercase tracking-wider"><i data-lucide="calendar" class="w-3 h-3 mr-1.5"></i> Added ${formatRelativeTime(link.dateAdded)}</span>
+                    <span class="flex items-center text-[10px] font-bold uppercase tracking-wider"><i data-lucide="mouse-pointer-click" class="w-3 h-3 mr-1.5"></i> ${link.clickCount || 0} views</span>
                   </div>
 
-                  <div class="flex items-center justify-end gap-1.5 shrink-0">
-                    <!-- Read Toggle -->
-                    <button class="read-toggle-btn flex items-center h-10 px-3 border rounded-lg text-xs font-bold transition-all active:scale-95 ${link.readStatus === 'read' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100'}" data-id="${link.id}">
-                      <i data-lucide="check-circle" class="w-4 h-4 mr-1 shrink-0"></i>
+                  <div class="flex items-center gap-2">
+                    <button class="read-toggle-btn flex items-center h-8 px-3 rounded-lg text-xs font-bold transition-all active:scale-95 ${link.readStatus === 'read' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}" data-id="${link.id}">
+                      <i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1.5"></i>
                       ${link.readStatus === 'read' ? 'Read' : 'Unread'}
                     </button>
 
-                    <!-- Edit Options Button -->
-                    <button class="card-options-btn h-10 w-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-500 active:scale-95" data-id="${link.id}" aria-label="Options">
-                      <i data-lucide="more-vertical" class="w-4.5 h-4.5"></i>
+                    <button class="card-options-btn h-8 w-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 active:scale-95 transition-all" data-id="${link.id}" aria-label="Options">
+                      <i data-lucide="more-horizontal" class="w-4 h-4"></i>
                     </button>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
